@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liste des Pokémon</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        #pokemonList {
+            list-style-type: none;
+            padding: 0;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        #pokemonList li {
+            width: 300px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+        #pokemonList li img {
+            max-width: 150px;
+            margin-bottom: 10px;
+        }
+        #pokemonList li h2 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+        #pokemonList li strong {
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <h1>Liste des Pokémon</h1>
+    <ul id="pokemonList"></ul>
+
+    <script>
+        async function fetchAndDisplayPokemons() {
+            const pokemonList = document.getElementById('pokemonList');
+            let offset = 0;
+            let limit = 1000; // Limite maximale par requête pour PokéAPI
+
+            try {
+                while (true) {
+                    const apiUrl = `https://pokeapi.co/api/v2/pokemon?offset=${offset}&limit=${limit}`;
+                    const response = await fetch(apiUrl);
+                    const data = await response.json();
+                    const pokemons = data.results;
+
+                    if (pokemons.length === 0) {
+                        console.log('Aucun Pokémon trouvé.');
+                        break;
+                    }
+
+                    for (let i = 0; i < pokemons.length; i++) {
+                        const pokemonUrl = pokemons[i].url;
+                        const pokemonResponse = await fetch(pokemonUrl);
+                        const pokemonData = await pokemonResponse.json();
+
+                        const listItem = document.createElement('li');
+                        listItem.innerHTML = `
+                            <h2>${pokemonData.name}</h2>
+                            <img src="${pokemonData.sprites.front_default}" alt="Image de ${pokemonData.name}">
+                            <br>
+                            <strong>ID:</strong> ${pokemonData.id}<br>
+                            <strong>Types:</strong> ${pokemonData.types.map(type => type.type.name).join(', ')}<br>
+                            <strong>Stats:</strong><br>
+                            ${pokemonData.stats.map(stat => `
+                                - ${stat.stat.name}: ${stat.base_stat}<br>
+                            `).join('')}
+                            <strong>Capacités:</strong><br>
+                            ${pokemonData.abilities.map(ability => `
+                                - ${ability.ability.name}<br>
+                            `).join('')}
+                        `;
+                        pokemonList.appendChild(listItem);
+                    }
+
+                    offset += limit;
+                }
+
+            } catch (error) {
+                console.error('Erreur lors de la récupération des Pokémon :', error);
+            }
+        }
+
+        fetchAndDisplayPokemons();
+    </script>
+</body>
+</html>
